@@ -173,7 +173,7 @@
               changePercent: -9999,
               changeStr: "N/A"
             });
-            return;
+            continue;
           }
 
           const change = current - prevClose;
@@ -185,12 +185,6 @@
             changeStr: `${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%`
           });
 
-
-          stockData.push({
-            symbol,
-            changePercent,
-            changeStr: `${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%`
-          });
         } catch (err) {
           console.error(`Failed to fetch ${symbol}:`, err);
         }
