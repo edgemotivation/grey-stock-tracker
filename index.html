@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <title>Grey code</title>
   <style>
@@ -14,9 +15,16 @@
       padding: 40px 20px;
     }
 
-    h1 { font-size: 32px; font-weight: 600; margin-bottom: 20px; }
+    h1 {
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
 
-    .tabs { display: flex; gap: 12px; }
+    .tabs {
+      display: flex;
+      gap: 12px;
+    }
 
     .tab {
       padding: 10px 20px;
@@ -28,9 +36,13 @@
       border: 1px solid #2c2f36;
     }
 
-    .tab.active { background: #fff; color: #0f1116; }
+    .tab.active {
+      background: #fff;
+      color: #0f1116;
+    }
 
-    .stock-list, .details {
+    .stock-list,
+    .details {
       width: 100%;
       max-width: 700px;
       background: #1a1c22;
@@ -47,10 +59,17 @@
       cursor: pointer;
     }
 
-    .up { color: #00ff95; }
-    .down { color: #ff4e4e; }
+    .up {
+      color: #00ff95;
+    }
 
-    .search-container { position: relative; }
+    .down {
+      color: #ff4e4e;
+    }
+
+    .search-container {
+      position: relative;
+    }
 
     input[type="text"] {
       padding: 10px 14px;
@@ -81,14 +100,17 @@
       cursor: pointer;
     }
 
-    #searchResults li:hover { background: #333; }
+    #searchResults li:hover {
+      background: #333;
+    }
   </style>
 </head>
 
 <body>
   <h1>📊 Market Movers</h1>
 
-  <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 700px; margin-bottom: 20px;">
+  <div
+    style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 700px; margin-bottom: 20px;">
     <div class="tabs">
       <button class="tab active" id="gainers-tab">Top Gainers</button>
       <button class="tab" id="losers-tab">Top Losers</button>
@@ -144,8 +166,25 @@
 
           const prevClose = parseFloat(data.previous_close);
           const current = parseFloat(data.price);
+
+          if (isNaN(current) || isNaN(prevClose)) {
+            stockData.push({
+              symbol,
+              changePercent: -9999,
+              changeStr: "N/A"
+            });
+            return;
+          }
+
           const change = current - prevClose;
           const changePercent = (change / prevClose) * 100;
+
+          stockData.push({
+            symbol,
+            changePercent,
+            changeStr: `${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%`
+          });
+
 
           stockData.push({
             symbol,
@@ -256,4 +295,5 @@
     fetchAndRenderStocks();
   </script>
 </body>
+
 </html>
