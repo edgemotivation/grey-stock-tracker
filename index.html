@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Grey code</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f1116;
+      color: #e6e6e6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 12px;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      background: #1a1c22;
+      border-radius: 20px;
+      color: #ccc;
+      cursor: pointer;
+      font-weight: 500;
+      border: 1px solid #2c2f36;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .tab:hover {
+      background: #333;
+    }
+
+    .tab.active {
+      background: #fff;
+      color: #0f1116;
+    }
+
+    .stock-list,
+    .details {
+      width: 100%;
+      max-width: 700px;
+      background: #1a1c22;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .stock-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #2c2f36;
+      cursor: pointer;
+    }
+
+    .stock-item:last-child {
+      border-bottom: none;
+    }
+
+    .up {
+      color: #00ff95;
+    }
+
+    .down {
+      color: #ff4e4e;
+    }
+
+    .search-container {
+      position: relative;
+    }
+
+    input[type="text"] {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      width: 180px;
+      background: #2c2f36;
+      color: #fff;
+    }
+
+    input[type="text"]::placeholder {
+      color: #888;
+    }
+
+    #searchResults {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #1a1c22;
+      border-radius: 8px;
+      list-style: none;
+      padding: 0;
+      margin: 4px 0 0 0;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+
+    #searchResults li {
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    #searchResults li:hover {
+      background: #333;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>📊 Market Movers</h1>
+
+  <div
+    style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 700px; margin-bottom: 20px;">
+    <div class="tabs">
+      <button class="tab active" id="gainers-tab">Top Gainers</button>
+      <button class="tab" id="losers-tab">Top Losers</button>
+    </div>
+    <div class="search-container">
+      <input type="text" id="searchInput" placeholder="Search symbol..." autocomplete="off" />
+      <ul id="searchResults"></ul>
+    </div>
+  </div>
+
+  <div class="stock-list" id="stock-list"></div>
+  <div class="details" id="stock-details">Click a stock to see data and chart.</div>
+
+  <script>
+    const stocks = ["AAPL", "MSFT", "TSLA", "AMD", "INTC", "IBM", "GE", "F", "T", "BA"];
+    const gainersTab = document.getElementById("gainers-tab");
+    const losersTab = document.getElementById("losers-tab");
+    const stockList = document.getElementById("stock-list");
+    const stockDetails = document.getElementById("stock-details");
+    const searchInput = document.getElementById("searchInput");
+    const searchResults = document.getElementById("searchResults");
+
+    let sortedStockData = [];
+
+    function format(val) {
+      const num = parseFloat(val);
+      return isNaN(num) ? 'N/A' : `$${num.toFixed(2)}`;
+    }
+
+    function formatPercent(val) {
+      const num = parseFloat(val);
+      return isNaN(num) ? 'N/A' : `${num.toFixed(2)}%`;
+    }
+
+    function renderList(data) {
+      stockList.innerHTML = data
+        .map(
+          (s) =>
+            `<div class="stock-item" onclick="loadStock('${s.symbol}')">
+               <span>${s.symbol}</span>
+               <span class="${s.changePercent >= 0 ? 'up' : 'down'}">${s.changeStr}</span>
+             </div>`
+        )
+        .join("");
+    }
+
+    async function fetchAndRenderStocks() {
+      const stockData = [];
+
+      for (const symbol of stocks) {
+        try {
+          const res = await fetch(`/api/quote?symbol=${symbol}`);
+          const data = await res.json();
+          const prevClose = parseFloat(data.previous_close);
+          const current = parseFloat(data.price);
+          const change = current - prevClose;
+          const changePercent = (change / prevClose) * 100;
+
+          stockData.push({
+            symbol,
+            changePercent,
+            changeStr: `${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%`
+          });
+        } catch (err) {
+          console.error(`Failed to fetch ${symbol}:`, err);
+        }
+      }
+
+      sortedStockData = stockData.sort((a, b) => b.changePercent - a.changePercent);
+      renderList(sortedStockData.slice(0, 5));
+    }
+
+    gainersTab.onclick = () => {
+      gainersTab.classList.add("active");
+      losersTab.classList.remove("active");
+      renderList(sortedStockData.slice(0, 5));
+    };
+
+    losersTab.onclick = () => {
+      losersTab.classList.add("active");
+      gainersTab.classList.remove("active");
+      renderList(sortedStockData.slice(-5).reverse());
+    };
+
+    async function loadStock(symbol) {
+      stockDetails.innerHTML = `Loading ${symbol}...`;
+
+      try {
+        const quoteRes = await fetch(`/api/quote?symbol=${symbol}`);
+        const quote = await quoteRes.json();
+
+        const current = parseFloat(quote.price);
+        const open = parseFloat(quote.open);
+        const high = parseFloat(quote.high);
+        const low = parseFloat(quote.low);
+        const prevClose = parseFloat(quote.previous_close);
+        const hasQuote = !isNaN(current) && !isNaN(prevClose);
+
+        const change = hasQuote ? current - prevClose : null;
+        const direction = change >= 0 ? "up" : "down";
+        const arrow = direction === "up" ? "📈" : "📉";
+
+        stockDetails.innerHTML = `
+          <h3>${symbol} ${hasQuote ? arrow : ""}</h3>
+          ${hasQuote ? `<p class="${direction}">Current: ${format(current)}</p>` : `<p style="color: orange;">Quote data not available</p>`}
+          <p>Open: ${format(open)}</p>
+          <p>High: ${format(high)}</p>
+          <p>Low: ${format(low)}</p>
+          <p>Previous Close: ${format(prevClose)}</p>
+          <div style="margin-top: 20px;">
+            <iframe 
+              src="https://s.tradingview.com/widgetembed/?symbol=${symbol}&interval=5&theme=dark"
+              width="100%" height="400" frameborder="0" allowfullscreen>
+            </iframe>
+          </div>
+        `;
+      } catch (err) {
+        stockDetails.innerHTML = `<p style="color:red;">❌ Failed to load data: ${err.message}</p>`;
+        console.error(err);
+      }
+    }
+
+    searchInput.addEventListener("input", async function () {
+      const query = this.value.trim().toUpperCase();
+      if (!query || query.length < 2) {
+        searchResults.innerHTML = "";
+        return;
+      }
+
+      try {
+        const res = await fetch(`https://api.twelvedata.com/symbol_search?symbol=${query}&apikey=YOUR_API_KEY`);
+        const data = await res.json();
+
+        searchResults.innerHTML = "";
+
+        if (data.data && data.data.length > 0) {
+          data.data.slice(0, 5).forEach(stock => {
+            const item = document.createElement("li");
+            item.textContent = `${stock.symbol} — ${stock.instrument_name}`;
+            item.onclick = () => {
+              loadStock(stock.symbol);
+              searchInput.value = stock.symbol;
+              searchResults.innerHTML = "";
+            };
+            searchResults.appendChild(item);
+          });
+        } else {
+          const none = document.createElement("li");
+          none.textContent = "No results found";
+          none.style.color = "#888";
+          none.style.padding = "8px 12px";
+          searchResults.appendChild(none);
+        }
+      } catch (err) {
+        console.error("❌ Search error:", err);
+      }
+    });
+
+
+    document.addEventListener("click", (e) => {
+      if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.innerHTML = "";
+      }
+    });
+
+    fetchAndRenderStocks();
+  </script>
+</body>
+
+</html>
