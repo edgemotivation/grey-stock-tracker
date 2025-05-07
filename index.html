@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <title>Grey code</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       margin: 0;
@@ -19,11 +19,13 @@
       font-size: 32px;
       font-weight: 600;
       margin-bottom: 20px;
+      text-align: center;
     }
 
     .tabs {
       display: flex;
       gap: 12px;
+      flex-wrap: wrap;
     }
 
     .tab {
@@ -41,14 +43,14 @@
       color: #0f1116;
     }
 
-    .stock-list,
-    .details {
+    .stock-list, .details {
       width: 100%;
       max-width: 700px;
       background: #1a1c22;
       border-radius: 10px;
       padding: 20px;
       margin-bottom: 20px;
+      box-sizing: border-box;
     }
 
     .stock-item {
@@ -59,25 +61,26 @@
       cursor: pointer;
     }
 
-    .up {
-      color: #00ff95;
+    .stock-item:last-child {
+      border-bottom: none;
     }
 
-    .down {
-      color: #ff4e4e;
-    }
+    .up { color: #00ff95; }
+    .down { color: #ff4e4e; }
 
     .search-container {
       position: relative;
+      width: 100%;
     }
 
     input[type="text"] {
       padding: 10px 14px;
       border-radius: 8px;
       border: none;
-      width: 180px;
+      width: 100%;
       background: #2c2f36;
       color: #fff;
+      font-size: 16px;
     }
 
     #searchResults {
@@ -103,14 +106,29 @@
     #searchResults li:hover {
       background: #333;
     }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 24px;
+      }
+
+      .tab {
+        font-size: 14px;
+        padding: 8px 16px;
+      }
+
+      .stock-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+    }
   </style>
 </head>
-
 <body>
   <h1>📊 Market Movers</h1>
 
-  <div
-    style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 700px; margin-bottom: 20px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 700px; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
     <div class="tabs">
       <button class="tab active" id="gainers-tab">Top Gainers</button>
       <button class="tab" id="losers-tab">Top Losers</button>
@@ -126,7 +144,7 @@
 
   <script>
     const stocks = ["AAPL", "MSFT", "TSLA", "AMD", "INTC", "IBM", "GE", "F", "T", "BA"];
-    const API_KEY = "dbc0951a5b5741c7b48a5dae3854c886"; // 🔑 Replace this
+    const API_KEY = "dbc0951a5b5741c7b48a5dae3854c886"; // Replace with your real Twelve Data API key
     const gainersTab = document.getElementById("gainers-tab");
     const losersTab = document.getElementById("losers-tab");
     const stockList = document.getElementById("stock-list");
@@ -139,11 +157,6 @@
     function format(val) {
       const num = parseFloat(val);
       return isNaN(num) ? 'N/A' : `$${num.toFixed(2)}`;
-    }
-
-    function formatPercent(val) {
-      const num = parseFloat(val);
-      return isNaN(num) ? 'N/A' : `${num.toFixed(2)}%`;
     }
 
     function renderList(data) {
@@ -184,13 +197,15 @@
             changePercent,
             changeStr: `${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%`
           });
-
         } catch (err) {
           console.error(`Failed to fetch ${symbol}:`, err);
         }
       }
 
-      sortedStockData = stockData.sort((a, b) => b.changePercent - a.changePercent);
+      sortedStockData = stockData
+        .filter(s => s.changeStr !== "N/A")
+        .sort((a, b) => b.changePercent - a.changePercent);
+
       renderList(sortedStockData.slice(0, 5));
     }
 
@@ -289,5 +304,5 @@
     fetchAndRenderStocks();
   </script>
 </body>
-
 </html>
+
