@@ -107,6 +107,43 @@
       background: #333;
     }
 
+    #recent-searches {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #1a1c22;
+      border: 1px solid #2c2f36;
+      border-radius: 10px;
+      padding: 12px 16px;
+      max-width: 200px;
+      font-size: 14px;
+      z-index: 999;
+    }
+
+    #recent-searches h4 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      color: #ccc;
+    }
+
+    #recentList {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+
+    #recentList li {
+      color: #eee;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+
+    #recentList li:hover {
+      text-decoration: underline;
+    }
+
     @media (max-width: 600px) {
       h1 {
         font-size: 24px;
@@ -121,6 +158,13 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 4px;
+      }
+
+      #recent-searches {
+        position: static;
+        margin-top: 20px;
+        width: 100%;
+        max-width: 700px;
       }
     }
   </style>
@@ -142,6 +186,11 @@
   <div class="stock-list" id="stock-list"></div>
   <div class="details" id="stock-details">Click a stock to see data and chart.</div>
 
+  <div id="recent-searches">
+    <h4>Recent Searches</h4>
+    <ul id="recentList"></ul>
+  </div>
+
   <script>
     const stocks = ["AAPL", "MSFT", "TSLA", "AMD", "INTC", "IBM", "GE", "F", "T", "BA"];
     const API_KEY = "dbc0951a5b5741c7b48a5dae3854c886"; // Replace with your real Twelve Data API key
@@ -151,8 +200,10 @@
     const stockDetails = document.getElementById("stock-details");
     const searchInput = document.getElementById("searchInput");
     const searchResults = document.getElementById("searchResults");
+    const recentList = document.getElementById("recentList");
 
     let sortedStockData = [];
+    let recentSearches = [];
 
     function format(val) {
       const num = parseFloat(val);
@@ -253,10 +304,25 @@
             </iframe>
           </div>
         `;
+
+        updateRecentSearches(symbol);
       } catch (err) {
         stockDetails.innerHTML = `<p style="color:red;">❌ Failed to load data: ${err.message}</p>`;
         console.error(err);
       }
+    }
+
+    function updateRecentSearches(symbol) {
+      recentSearches = [symbol, ...recentSearches.filter(s => s !== symbol)];
+      if (recentSearches.length > 5) recentSearches.pop();
+
+      recentList.innerHTML = "";
+      recentSearches.forEach(sym => {
+        const li = document.createElement("li");
+        li.textContent = sym;
+        li.onclick = () => loadStock(sym);
+        recentList.appendChild(li);
+      });
     }
 
     searchInput.addEventListener("input", async function () {
