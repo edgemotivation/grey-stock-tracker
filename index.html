@@ -229,7 +229,7 @@
           const data = await res.json();
 
           const prevClose = parseFloat(data.previous_close);
-          const current = parseFloat(data.price);
+          const current = parseFloat(data.price) || parseFloat(data.close);
 
           if (isNaN(current) || isNaN(prevClose)) {
             stockData.push({
@@ -371,4 +371,5 @@
   </script>
 </body>
 </html>
+
 
