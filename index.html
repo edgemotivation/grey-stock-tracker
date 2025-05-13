@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <title>Grey code</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -43,7 +44,8 @@
       color: #0f1116;
     }
 
-    .stock-list, .details {
+    .stock-list,
+    .details {
       width: 100%;
       max-width: 700px;
       background: #1a1c22;
@@ -65,8 +67,13 @@
       border-bottom: none;
     }
 
-    .up { color: #00ff95; }
-    .down { color: #ff4e4e; }
+    .up {
+      color: #00ff95;
+    }
+
+    .down {
+      color: #ff4e4e;
+    }
 
     .search-container {
       position: relative;
@@ -169,10 +176,12 @@
     }
   </style>
 </head>
+
 <body>
   <h1>📊 Market Movers</h1>
 
-  <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 700px; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+  <div
+    style="display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 700px; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
     <div class="tabs">
       <button class="tab active" id="gainers-tab">Top Gainers</button>
       <button class="tab" id="losers-tab">Top Losers</button>
@@ -193,7 +202,7 @@
 
   <script>
     const stocks = ["AAPL", "MSFT", "TSLA", "AMD", "INTC", "IBM", "GE", "F", "T", "BA"];
-    const API_KEY = "dbc0951a5b5741c7b48a5dae3854c886"; // Replace with your real Twelve Data API key
+    const API_KEY = "dbc0951a5b5741c7b48a5dae3854c886"; // Replace with your real API key
     const gainersTab = document.getElementById("gainers-tab");
     const losersTab = document.getElementById("losers-tab");
     const stockList = document.getElementById("stock-list");
@@ -280,8 +289,6 @@
         const data = await res.json();
 
         const current = parseFloat(data.price) || parseFloat(data.close);
-        const current = parseFloat(data.price) || parseFloat(data.close);
-
         const open = parseFloat(data.open);
         const high = parseFloat(data.high);
         const low = parseFloat(data.low);
@@ -290,11 +297,11 @@
 
         const change = hasQuote ? current - prevClose : null;
         const direction = change >= 0 ? "up" : "down";
-        const arrow = direction === "up" ? "📈" : "📉";
+        const arrow = hasQuote ? (direction === "up" ? "📈" : "📉") : "";
 
         stockDetails.innerHTML = `
-          <h3>${symbol} ${hasQuote ? arrow : ""}</h3>
-          ${hasQuote ? `<p class="${direction}">Current: ${format(current)}</p>` : `<p style="color: orange;">Quote data not available</p>`}
+          <h3>${symbol} ${arrow}</h3>
+          ${hasQuote ? `<p class="${direction}">Current: ${format(current)}</p>` : ``}
           <p>Open: ${format(open)}</p>
           <p>High: ${format(high)}</p>
           <p>Low: ${format(low)}</p>
@@ -371,7 +378,7 @@
 
     fetchAndRenderStocks();
   </script>
+
 </body>
+
 </html>
-
-
