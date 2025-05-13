@@ -279,7 +279,9 @@
         const res = await fetch(`https://api.twelvedata.com/quote?symbol=${symbol}&apikey=${API_KEY}`);
         const data = await res.json();
 
-        const current = parseFloat(data.price);
+        const current = parseFloat(data.price) || parseFloat(data.close);
+        const current = parseFloat(data.price) || parseFloat(data.close);
+
         const open = parseFloat(data.open);
         const high = parseFloat(data.high);
         const low = parseFloat(data.low);
